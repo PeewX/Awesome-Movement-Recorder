@@ -1,0 +1,39 @@
+<meta>
+    <info name = "Awesome Movement Recorder" description = "Awesome movement recorder tool to create awesome race maps for awesome players :P" author = "PewX" version = "1.0"/>
+    <min_mta_version client="1.5.0" server="1.5.0" />
+    <oop>true</oop>
+
+    <!--Shared-->
+    <script src = "shared/classlib.lua" type = "shared" />
+    <script src = "shared/utils.lua" type = "shared" />
+
+    <!--Server-->
+
+    <!--Client-->
+        <!--classes-->
+        <script src = "client/classes/dxGUI/CDX__Manager.lua" type = "client" />
+        <script src = "client/classes/dxGUI/CDXEdit.lua" type = "client" />
+
+        <script src = "client/classes/CAMR/CAMR.lua" type = "client" />
+        <script src = "client/classes/CAMR/CAMR_designer.lua" type = "client" />
+
+        <!--manager-->
+        <script src = "client/manager/CAMRManager.lua" type = "client" />
+
+        <!--system-->
+        <script src = "client/system/CCore.lua" type = "client" />
+
+    <!--Files-->
+    <file src = "res/config/config.xml" />
+    <file src = "res/img/icon_menu.png" />
+    <file src = "res/img/icon_home.png" />
+    <file src = "res/img/icon_save.png" />
+    <file src = "res/img/icon_load.png" />
+    <file src = "res/img/icon_settings.png" />
+    <file src = "res/img/circle_arrow_forward.png" />
+    <file src = "res/img/circle_arrow_previous.png" />
+    <file src = "res/img/circle_filled.png" />
+    <file src = "res/img/circle_unfilled.png" />
+    <file src = "res/img/circle_pause.png" />
+    <file src = "res/img/circle_play.png" />
+</meta>

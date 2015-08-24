@@ -1,0 +1,16 @@
+<config>
+    <keybinds>
+        <key_record>b</key_record>
+        <key_previous>num_4</key_previous>
+        <key_togglePlayback>num_5</key_togglePlayback>
+        <key_next>num_6</key_next>
+    </keybinds>
+
+
+    <color_ground r = "255" g = "0" b = "0" a = "255" />
+    <color_air r = "0" g = "110" b = "255" a = "255" />
+
+    <rec_quality>100</rec_quality>
+    <showLinesWhileRecord>true</showLinesWhileRecord>
+    <!--Todo: Ideas: Save/Show vehicle health (visuell: vehicle color) | Show vehicle model name | Show vehicle speed | -->
+</config>
