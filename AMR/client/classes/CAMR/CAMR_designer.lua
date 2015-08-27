@@ -45,7 +45,7 @@ function CAMRDesigner:destructor()
 end
 
 function CAMRDesigner:onClientClick(sButton, sState)
-    if sButton ~= "left" or sState ~= "down" then return end
+    if sButton ~= "left" or sState ~= "down" then self.timelinePressed = false return end
 
     if not self.showMenu and isHover(self.startX + 5, self.startY + 25, 24, 24) then
         self.showMenu = true
@@ -68,16 +68,26 @@ function CAMRDesigner:onClientClick(sButton, sState)
         end
     end
 
+    local length = self.width - 10 - 100
+    if isHover(self.startX + 100 + length/self.frameCount*self.currentFrame - 9, self.startY + self.height - 1 - 29/2-18/2, 18, 18) then
+        Core:getManager("CAMRManager").AMR:stopPlayback()
+        self.timelinePressed = true
+        return
+    end
+
     if isHover(self.startX + 5, self.startY + self.height - 29, 24, 24) then
         Core:getManager("CAMRManager").AMR:previousFrame()
+        return
     end
 
     if isHover(self.startX + 34, self.startY + self.height - 29, 24, 24) then
         Core:getManager("CAMRManager").AMR:togglePlayback()
+        return
     end
 
     if isHover(self.startX + 63, self.startY + self.height - 29, 24, 24) then
         Core:getManager("CAMRManager").AMR:nextFrame()
+        return
     end
 end
 
@@ -218,5 +228,19 @@ function CAMRDesigner:updateRenderTarget()
 end
 
 function CAMRDesigner:onRender()
+    if self.timelinePressed then
+        local cursorPosX = getCursorPosition()
+
+        local cursorTimelinePercent = 100/(self.width-10-100)*((cursorPosX*x)-self.startX-100)
+
+        if cursorTimelinePercent < 0 then cursorTimelinePercent = 0.1 end
+        if cursorTimelinePercent > 100 then cursorTimelinePercent = 100 end
+
+        Core:getManager("CAMRManager").AMR.playRecordFrame =  math.ceil(self.frameCount/100*cursorTimelinePercent)
+        Core:getManager("CAMRManager").AMR:updateFrame()
+
+        self:updateRenderTarget()
+    end
+
     dxDrawImage(self.startX, self.startY, self.width, self.height, self.renderTarget)
 end

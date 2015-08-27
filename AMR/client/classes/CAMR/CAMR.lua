@@ -11,6 +11,7 @@ function CAMR:constructor()
     self.eVehicleDummy:setPlateText("AMR Dummy")
     self.eVehicleDummy:setFrozen(true)
     self.eVehicleDummy:setCollisionsEnabled(false)
+    self.eVehicleDummy:setDimension(200) --Todo: Get dimension of player while recording
 
     self.record = {line = {}, vehicle = {}, frames = 0}
     self.recording = false
@@ -38,6 +39,7 @@ end
 
 function CAMR:startRecording()
     if self.recording then return end
+    if not localPlayer:isInVehicle() then outputChatBox("You are not in a vehicle!") return end
 
     --Reset table if there is already an record
     if self.record.frames ~= 0 then
@@ -45,7 +47,6 @@ function CAMR:startRecording()
         self.record = {line = {}, vehicle = {}, frames = 0}
     end
 
-    if not localPlayer:isInVehicle() then outputChatBox("You are not in a vehicle!") return end
     self.eClientVehicle = localPlayer:getOccupiedVehicle()
 
     addEventHandler("onClientRender", root, self.renderRecordEvent)
@@ -104,7 +105,6 @@ function CAMR:updateFrame()
     if frame.nVehicleModel ~= self.eVehicleDummy:getModel() then
         self.eVehicleDummy:setModel(frame.nVehicleModel)
     end
-
     Core:getManager("CAMRManager").gui:updateLabels(self.playRecordFrame, self.record.frames)
 end
 
