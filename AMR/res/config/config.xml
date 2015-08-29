@@ -1,6 +1,6 @@
 <config>
     <keybinds>
-        <key_record>b</key_record>
+        <key_record>r</key_record>
         <key_previous>num_4</key_previous>
         <key_togglePlayback>num_5</key_togglePlayback>
         <key_next>num_6</key_next>

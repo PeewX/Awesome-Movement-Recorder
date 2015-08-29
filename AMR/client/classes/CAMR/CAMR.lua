@@ -13,6 +13,8 @@ function CAMR:constructor()
     self.eVehicleDummy:setCollisionsEnabled(false)
     self.eVehicleDummy:setDimension(200) --Todo: Get dimension of player while recording
 
+    exports.editor_main:registerEditorElements(self.eVehicleDummy)
+
     self.record = {line = {}, vehicle = {}, frames = 0}
     self.recording = false
     self.renderPlayback = false

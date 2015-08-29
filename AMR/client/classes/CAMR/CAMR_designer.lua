@@ -31,7 +31,7 @@ function CAMRDesigner:constructor()
     self:windowDefinitions()
     self:loadImages()
 
-    self.currentFrame = 1
+    self.currentFrame = 0
     self.frameCount = 1
 
     self.currentStatePlaybackImage = self.circle_play
@@ -119,6 +119,9 @@ function CAMRDesigner:show()
     addEventHandler("onClientRestore", root, self.clientRestoreEvent)
     addEventHandler("onClientClick", root, self.clientClickEvent)
     addEventHandler("onClientCursorMove", root, self.cursorMoveEvent)
+    --exports.editor_main:setMaxSelectDistance(0)
+    exports.editor_main:setWorldClickEnabled(false)
+    exports.editor_main:enableMouseOver(false)
 end
 
 function CAMRDesigner:hide()
@@ -127,6 +130,9 @@ function CAMRDesigner:hide()
     removeEventHandler("onClientRestore", root, self.clientRestoreEvent)
     removeEventHandler("onClientClick", root, self.clientClickEvent)
     removeEventHandler("onClientCursorMove", root, self.cursorMoveEvent)
+    --exports.editor_main:setMaxSelectDistance(155)
+    exports.editor_main:setWorldClickEnabled(true)
+    exports.editor_main:enableMouseOver(true)
 end
 
 function CAMRDesigner:onClientRestore(bRenderTargetsCleared)
@@ -137,10 +143,10 @@ end
 
 function CAMRDesigner:toggle()
     if self.rendered then
-        showCursor(false)
+        --showCursor(false) -- just for dev, if we dont have the cursor from editor resource
         self:hide()
     else
-        showCursor(true)
+        --showCursor(true) -- just for dev, if we dont have the cursor from editor resource
         self:show()
     end
 end
@@ -149,8 +155,8 @@ function CAMRDesigner:windowDefinitions()
     self.width = 450
     self.height = 200
 
-    self.startX = x/2-self.width
-    self.startY = y/2-self.height
+    self.startX = x-self.width
+    self.startY = y-self.height
 end
 
 function CAMRDesigner:loadImages()

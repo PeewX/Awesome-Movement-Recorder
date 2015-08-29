@@ -8,6 +8,11 @@
     <script src = "shared/utils.lua" type = "shared" />
 
     <!--Server-->
+        <!--classes-->
+
+        <!--manager-->
+
+        <!--system-->
 
     <!--Client-->
         <!--classes-->
@@ -18,13 +23,13 @@
         <script src = "client/classes/CAMR/CAMR_designer.lua" type = "client" />
 
         <!--manager-->
-        <script src = "client/manager/CAMRManager.lua" type = "client" />
+        <script src = "client/manager/CAMRManager/CAMRManager.lua" type = "client" />
 
         <!--system-->
         <script src = "client/system/CCore.lua" type = "client" />
 
     <!--Files-->
-    <file src = "res/config/config.xml" />
+    <file src = "res/config/config.xml" validate = "false"/>
     <file src = "res/img/icon_menu.png" />
     <file src = "res/img/icon_home.png" />
     <file src = "res/img/icon_save.png" />
