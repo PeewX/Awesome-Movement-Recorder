@@ -16,7 +16,7 @@ function CAMRManager:constructor()
     self:initBinds()
 
     --outputs
-    outputChatBox("Toggle GUI with lctrl + m")
+    outputChatBox("|AMR| #009DD1Toggle GUI with lctrl + m", 255, 255, 255, true)
 end
 
 function CAMRManager:destructor()
@@ -32,8 +32,6 @@ function CAMRManager:loadSettings()
     for _, node in pairs(keybinds:getChildren()) do
         self.keybinds[node:getName()] = node:getValue()
     end
-
-    outputChatBox(self.keybinds.key_record)
 
     self.color_ground = xml:findChild("color_ground", 0):getAttributes()
     self.color_air = xml:findChild("color_air", 0):getAttributes()

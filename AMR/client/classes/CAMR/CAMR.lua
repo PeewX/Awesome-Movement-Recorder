@@ -94,11 +94,11 @@ function CAMR:record()
 
     local distance = getDistanceBetweenPoints3D(vector_VehPos, self.record.line[#self.record.line].pos)
     if distance > 0.5 then
-        table.insert(self.record.line, {pos = vector_VehPos, isOnGround = self.eClientVehicle:isOnGround(), color = tVehicleColor})
+        table.insert(self.record.line, {pos = vector_VehPos, isOnGround = self.eClientVehicle:isOnGround()})
     end
 
     --Save vehicle datas
-    table.insert(self.record.vehicle, {nVehicleModel = nVehicleModel, pos = vector_VehPos, rot = vector_VehRot})
+    table.insert(self.record.vehicle, {nVehicleModel = nVehicleModel, pos = vector_VehPos, rot = vector_VehRot, color = tVehicleColor})
 end
 
 function CAMR:updateFrame()
