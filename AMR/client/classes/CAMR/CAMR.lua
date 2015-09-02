@@ -12,6 +12,7 @@ function CAMR:constructor()
     self.eVehicleDummy:setFrozen(true)
     self.eVehicleDummy:setCollisionsEnabled(false)
     self.eVehicleDummy:setDimension(200) --Todo: Get dimension of player while recording
+    setVehicleOverrideLights(self.eVehicleDummy, 2) --no methode is available lel :D
 
     exports.editor_main:registerEditorElements(self.eVehicleDummy)
 
@@ -84,6 +85,7 @@ function CAMR:record()
     local nVehicleModel = self.eClientVehicle:getModel()
     local vector_VehPos = Vector3(self.eClientVehicle:getPosition())
     local vector_VehRot = Vector3(self.eClientVehicle:getRotation())
+    local tVehicleColor = {self.eClientVehicle:getColor()}
 
     --Save line datas
     if #self.record.line == 0 then
@@ -92,7 +94,7 @@ function CAMR:record()
 
     local distance = getDistanceBetweenPoints3D(vector_VehPos, self.record.line[#self.record.line].pos)
     if distance > 0.5 then
-        table.insert(self.record.line, {pos = vector_VehPos, isOnGround = self.eClientVehicle:isOnGround()})
+        table.insert(self.record.line, {pos = vector_VehPos, isOnGround = self.eClientVehicle:isOnGround(), color = tVehicleColor})
     end
 
     --Save vehicle datas
@@ -104,9 +106,13 @@ function CAMR:updateFrame()
 
     self.eVehicleDummy:setPosition(self.record.vehicle[self.playRecordFrame].pos)
     self.eVehicleDummy:setRotation(self.record.vehicle[self.playRecordFrame].rot)
+
     if frame.nVehicleModel ~= self.eVehicleDummy:getModel() then
         self.eVehicleDummy:setModel(frame.nVehicleModel)
     end
+
+    setVehicleColor(self.eVehicleDummy, unpack(frame.color))
+
     Core:getManager("CAMRManager").gui:updateLabels(self.playRecordFrame, self.record.frames)
 end
 
