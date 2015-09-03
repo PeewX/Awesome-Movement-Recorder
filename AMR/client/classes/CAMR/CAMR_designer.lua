@@ -38,6 +38,8 @@ function CAMRDesigner:constructor()
 
     self.renderTarget = DxRenderTarget(self.width, self.height, true)
     self:updateRenderTarget()
+
+    addEventHandler("onClientRestore", root, self.clientRestoreEvent)
 end
 
 function CAMRDesigner:destructor()
@@ -68,6 +70,7 @@ function CAMRDesigner:onClientClick(sButton, sState)
         end
     end
 
+    --control: timeline
     local length = self.width - 10 - 100
     if isHover(self.startX + 100 + length/self.frameCount*self.currentFrame - 9, self.startY + self.height - 1 - 29/2-18/2, 18, 18) then
         Core:getManager("CAMRManager").AMR:stopPlayback()
@@ -75,19 +78,27 @@ function CAMRDesigner:onClientClick(sButton, sState)
         return
     end
 
+    --control: previous frame
     if isHover(self.startX + 5, self.startY + self.height - 29, 24, 24) then
         Core:getManager("CAMRManager").AMR:previousFrame()
         return
     end
 
+    --control: start/stop
     if isHover(self.startX + 34, self.startY + self.height - 29, 24, 24) then
         Core:getManager("CAMRManager").AMR:togglePlayback()
         return
     end
 
+    --control: next frame
     if isHover(self.startX + 63, self.startY + self.height - 29, 24, 24) then
         Core:getManager("CAMRManager").AMR:nextFrame()
         return
+    end
+
+    --Toggle lines button
+    if isHover(self.startX + self.width - 100- 5, self.startY + 25, 100, 25) then
+        Core:getManager("CAMRManager").AMR:toggleLine()
     end
 end
 
@@ -116,7 +127,7 @@ end
 function CAMRDesigner:show()
     self.rendered = true
     addEventHandler("onClientRender", root, self.renderFunc)
-    addEventHandler("onClientRestore", root, self.clientRestoreEvent)
+    --addEventHandler("onClientRestore", root, self.clientRestoreEvent)
     addEventHandler("onClientClick", root, self.clientClickEvent)
     addEventHandler("onClientCursorMove", root, self.cursorMoveEvent)
     --exports.editor_main:setMaxSelectDistance(0)
@@ -127,7 +138,7 @@ end
 function CAMRDesigner:hide()
     self.rendered = false
     removeEventHandler("onClientRender", root, self.renderFunc)
-    removeEventHandler("onClientRestore", root, self.clientRestoreEvent)
+    --removeEventHandler("onClientRestore", root, self.clientRestoreEvent)
     removeEventHandler("onClientClick", root, self.clientClickEvent)
     removeEventHandler("onClientCursorMove", root, self.cursorMoveEvent)
     --exports.editor_main:setMaxSelectDistance(155)
@@ -143,10 +154,10 @@ end
 
 function CAMRDesigner:toggle()
     if self.rendered then
-        --showCursor(false) -- just for dev, if we dont have the cursor from editor resource
+        --showCursor(false)--dev
         self:hide()
     else
-        --showCursor(true) -- just for dev, if we dont have the cursor from editor resource
+        --showCursor(true)--dev
         self:show()
     end
 end
@@ -166,7 +177,7 @@ function CAMRDesigner:loadImages()
 end
 
 function CAMRDesigner:updatePlaybackImage(bPlaybackState)
-    --If bState is true, so the playback is rendered and the button have to be a pause button :P
+    --If bPlaybackState is true, so the playback is rendered and the button have to be a pause button :P
     self.currentStatePlaybackImage = bPlaybackState and self.circle_pause or self.circle_play
     return self:updateRenderTarget()
 end
@@ -218,9 +229,13 @@ function CAMRDesigner:updateRenderTarget()
             dxDrawText("Recorded frames: " .. (self.frameCount or "-"), 5, 105)
             dxDrawText("Current frame: " .. (self.currentFrame or "-"), 0, self.height - 34 - 15, self.width, 0, tocolor(255, 255, 255), 1, "default", "center")
 
-            --Buttons??
-            dxDrawRectangle(self.width - 100 - 5, 50, 100, 25, tocolor(0, 180, 255, 200))
-            dxDrawText("Toggle lines", self.width - 100 - 5, 50, self.width - 5, 75, tocolor(255, 255, 255), 1, "default", "center", "center")
+            --Some controls
+            --toggle lines
+            dxDrawRectangle(self.width - 100 - 5, 25, 100, 25, tocolor(0, 180, 255, 200))
+            dxDrawText("Toggle line", self.width - 100 - 5, 25, self.width - 5, 50, tocolor(255, 255, 255), 1, "default", "center", "center")
+
+            --playback speed
+            --dxDrawLine(self.width - 20, 65, self.width - 20, 150, tocolor(100, 215, 255), 2)
         elseif self.activeMenu == "Save" then
 
         elseif self.activeMenu == "Load" then

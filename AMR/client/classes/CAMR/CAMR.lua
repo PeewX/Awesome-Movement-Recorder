@@ -11,7 +11,6 @@ function CAMR:constructor()
     self.eVehicleDummy:setPlateText("AMR Dummy")
     self.eVehicleDummy:setFrozen(true)
     self.eVehicleDummy:setCollisionsEnabled(false)
-    self.eVehicleDummy:setDimension(200) --Todo: Get dimension of player while recording
     setVehicleOverrideLights(self.eVehicleDummy, 2) --no methode is available lel :D
 
     exports.editor_main:registerEditorElements(self.eVehicleDummy)
@@ -22,10 +21,10 @@ function CAMR:constructor()
     self.playRecordFrame = 1
 
     self.renderRecordEvent = bind(CAMR.record, self)
-    self.renderDrawEvent = bind(CAMR.renderLine, self)
+    self.renderLineEvent = bind(CAMR.renderLine, self)
     self.renderPlaybackEvent = bind(CAMR.renderPlayback, self)
 
-    addEventHandler("onClientRender", root, self.renderDrawEvent)
+    self.renderLine = addEventHandler("onClientRender", root, self.renderLineEvent)
 end
 
 function CAMR:destructor()
@@ -43,6 +42,9 @@ end
 function CAMR:startRecording()
     if self.recording then return end
     if not localPlayer:isInVehicle() then outputChatBox("You are not in a vehicle!") return end
+
+    --Show the lines on record
+    self:showLine()
 
     --Reset table if there is already an record
     if self.record.frames ~= 0 then
@@ -63,7 +65,6 @@ function CAMR:stopRecording()
     removeEventHandler("onClientRender", root, self.renderRecordEvent)
 end
 
---maxV = 0
 function CAMR:record()
     if not localPlayer:isInVehicle() then
         outputChatBox("You are not in a vehicle!")
@@ -86,6 +87,7 @@ function CAMR:record()
     local vector_VehPos = Vector3(self.eClientVehicle:getPosition())
     local vector_VehRot = Vector3(self.eClientVehicle:getRotation())
     local tVehicleColor = {self.eClientVehicle:getColor()}
+    local nVehicleDimension = self.eClientVehicle:getDimension()
 
     --Save line datas
     if #self.record.line == 0 then
@@ -98,14 +100,16 @@ function CAMR:record()
     end
 
     --Save vehicle datas
-    table.insert(self.record.vehicle, {nVehicleModel = nVehicleModel, pos = vector_VehPos, rot = vector_VehRot, color = tVehicleColor})
+    table.insert(self.record.vehicle, {nVehicleModel = nVehicleModel, pos = vector_VehPos, rot = vector_VehRot, color = tVehicleColor, dimension = nVehicleDimension})
 end
 
 function CAMR:updateFrame()
     local frame = self.record.vehicle[self.playRecordFrame]
+    if not frame then return end
 
-    self.eVehicleDummy:setPosition(self.record.vehicle[self.playRecordFrame].pos)
-    self.eVehicleDummy:setRotation(self.record.vehicle[self.playRecordFrame].rot)
+    self.eVehicleDummy:setPosition(frame.pos)
+    self.eVehicleDummy:setRotation(frame.rot)
+    self.eVehicleDummy:setDimension(frame.dimension)
 
     if frame.nVehicleModel ~= self.eVehicleDummy:getModel() then
         self.eVehicleDummy:setModel(frame.nVehicleModel)
@@ -130,16 +134,39 @@ function CAMR:renderPlayback()
 end
 
 function CAMR:renderLine()
-    local st = getTickCount()
     for i, line in ipairs(self.record.line) do
         if self.record.line[i+1] then
-           dxDrawLine3D(line.pos, self.record.line[i+1].pos, line.isOnGround and tocolor(0, 100, 255, 200) or tocolor(170, 170, 255, 200), 10)
+           dxDrawLine3D(line.pos, self.record.line[i+1].pos, line.isOnGround and tocolor(0, 100, 255, 200) or tocolor(170, 170, 255, 200), 5)
 
            -- Just 4 fun :P
            -- dxDrawLine3D(line.pos, self.record.line[i+1].pos, tocolor(255/maxV*line.velocity, 255 - (255/maxV*line.velocity), 0, 255), 10)
         end
     end
-   -- outputChatBox(("Rendered '%s' lines in %sms"):format(#self.record.line, getTickCount()-st))
+end
+
+---
+-- Methodes to control the lines
+---
+function CAMR:toggleLine()
+    if self.renderLine then
+        self:hideLine()
+    else
+        self:showLine()
+    end
+end
+
+function CAMR:showLine()
+    if not self.renderLine then
+        self.renderLine = true
+        addEventHandler("onClientRender", root, self.renderLineEvent)
+    end
+end
+
+function CAMR:hideLine()
+    if self.renderLine then
+        self.renderLine = false
+        removeEventHandler("onClientRender", root, self.renderLineEvent)
+    end
 end
 
 ---
