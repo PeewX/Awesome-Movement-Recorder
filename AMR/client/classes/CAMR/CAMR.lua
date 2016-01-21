@@ -15,7 +15,7 @@ function CAMR:constructor()
 
     exports.editor_main:registerEditorElements(self.eVehicleDummy)
 
-    self.record = {line = {}, vehicle = {}, frames = 0}
+    self.record = {line = {}, vehicle = {}}
     self.recording = false
     self.renderPlayback = false
     self.playRecordFrame = 1
@@ -32,6 +32,8 @@ function CAMR:destructor()
 end
 
 function CAMR:toggleRecording()
+    if self.renderPlayback then outputChatBox("cant let you do this while playing record!") return end
+
     if not self.recording then
         self:startRecording()
     else
@@ -49,20 +51,24 @@ function CAMR:startRecording()
     --Reset table if there is already an record
     if self.record.frames ~= 0 then
         outputChatBox("Last record was cleared!")
-        self.record = {line = {}, vehicle = {}, frames = 0}
+        self.record = {line = {}, vehicle = {}}
     end
 
     self.eClientVehicle = localPlayer:getOccupiedVehicle()
 
     addEventHandler("onClientRender", root, self.renderRecordEvent)
+    self.recordStart = getTickCount()
     self.recording = true
+    Core:getManager("CAMRManager").gui:updateLabels({"state"}, {"Recording"})
 end
 
 function CAMR:stopRecording()
     if not self.recording then return end
     self.recording = false
-
     removeEventHandler("onClientRender", root, self.renderRecordEvent)
+
+    self.record.duration = getTickCount() - self.recordStart
+    Core:getManager("CAMRManager").gui:updateLabels({"recordDuration", "state"}, { self.record.duration, "-"})
 end
 
 function CAMR:record()
@@ -71,10 +77,6 @@ function CAMR:record()
         self:stopRecording()
         return
     end
-
-    --Count frames; currently.. well idk why.. not rly needed
-    self.record.frames = self.record.frames + 1
-
 
     --[[local vehVel = (Vector3.create(getElementVelocity(self.eClientVehicle))*180).length
     if vehVel > maxV then
@@ -87,7 +89,7 @@ function CAMR:record()
     local vector_VehPos = Vector3(self.eClientVehicle:getPosition())
     local vector_VehRot = Vector3(self.eClientVehicle:getRotation())
     local tVehicleColor = {self.eClientVehicle:getColor()}
-    local nVehicleDimension = self.eClientVehicle:getDimension()
+    local elapsedTime = getTickCount() - self.recordStart
 
     --Save line datas
     if #self.record.line == 0 then
@@ -100,7 +102,8 @@ function CAMR:record()
     end
 
     --Save vehicle datas
-    table.insert(self.record.vehicle, {nVehicleModel = nVehicleModel, pos = vector_VehPos, rot = vector_VehRot, color = tVehicleColor, dimension = nVehicleDimension})
+    table.insert(self.record.vehicle, {nVehicleModel = nVehicleModel, pos = vector_VehPos, rot = vector_VehRot, color = tVehicleColor, elapsedTime = elapsedTime})
+    Core:getManager("CAMRManager").gui:updateLabels({"frameCount"}, {#self.record.vehicle})
 end
 
 function CAMR:updateFrame()
@@ -109,7 +112,7 @@ function CAMR:updateFrame()
 
     self.eVehicleDummy:setPosition(frame.pos)
     self.eVehicleDummy:setRotation(frame.rot)
-    self.eVehicleDummy:setDimension(frame.dimension)
+    self.eVehicleDummy:setDimension(localPlayer.dimension)
 
     if frame.nVehicleModel ~= self.eVehicleDummy:getModel() then
         self.eVehicleDummy:setModel(frame.nVehicleModel)
@@ -117,20 +120,22 @@ function CAMR:updateFrame()
 
     setVehicleColor(self.eVehicleDummy, unpack(frame.color))
 
-    Core:getManager("CAMRManager").gui:updateLabels(self.playRecordFrame, self.record.frames)
+    --Core:getManager("CAMRManager").gui:updateLabels(self.playRecordFrame, self.record.frames)
+    --Core:getManager("CAMRManager").gui:updateLabels({"currentFrame", "frameCount"}, {self.playRecordFrame, #self.record.vehicle})
+    Core:getManager("CAMRManager").gui:updateLabels({"currentFrame", "elapsedTime"}, {self.playRecordFrame, frame.elapsedTime})
 end
 
 function CAMR:renderPlayback()
     if not self.eVehicleDummy then return end
 
-    if self.playRecordFrame > #self.record.vehicle then
-        self:stopPlayback()
-        return
-    end
+    local playbackProgress = (getTickCount() - self.playbackStart) / ((self.playbackStart + self.playbackDuration) - self.playbackStart)
+    self.playRecordFrame = math.floor(interpolateBetween(self.playbackStartFrame, 0, 0, #self.record.vehicle, 0, 0, playbackProgress, "Linear"))
 
     self:updateFrame()
 
-    self.playRecordFrame = self.playRecordFrame + 1
+    if playbackProgress >= 1 then
+        self:stopPlayback()
+    end
 end
 
 function CAMR:renderLine()
@@ -195,6 +200,8 @@ function CAMR:nextFrame()
 end
 
 function CAMR:togglePlayback()
+    if self.recording then outputChatBox("cant let you do this while recording!") return end
+
     if not self.renderPlayback then
         self:startPlayback()
         return
@@ -209,17 +216,26 @@ end
 function CAMR:startPlayback()
     if not self.eVehicleDummy then return end
 
-    if self.playRecordFrame > #self.record.vehicle then
+    if self.playRecordFrame >= #self.record.vehicle then
         self.playRecordFrame = 1
     end
+
+    self.playbackStart = getTickCount()
+    self.playbackStartFrame = self.playRecordFrame or 1
+
+    if not (self.record.duration and self.record.vehicle[self.playbackStartFrame]) then return end
+
+    self.playbackDuration = self.record.duration - self.record.vehicle[self.playbackStartFrame].elapsedTime
 
     self.renderPlayback = true
     addEventHandler("onClientRender", root, self.renderPlaybackEvent)
     Core:getManager("CAMRManager").gui:updatePlaybackImage(self.renderPlayback)
+    Core:getManager("CAMRManager").gui:updateLabels({"state"}, {"Playing"})
 end
 
 function CAMR:stopPlayback()
     self.renderPlayback = false
     removeEventHandler("onClientRender", root, self.renderPlaybackEvent)
     Core:getManager("CAMRManager").gui:updatePlaybackImage(self.renderPlayback)
+    Core:getManager("CAMRManager").gui:updateLabels({"state"}, {"-"})
 end

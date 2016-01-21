@@ -182,9 +182,14 @@ function CAMRDesigner:updatePlaybackImage(bPlaybackState)
     return self:updateRenderTarget()
 end
 
-function CAMRDesigner:updateLabels(nCurrentFrame, nFrameCount)
-    self.currentFrame = nCurrentFrame
-    self.frameCount = nFrameCount
+--function CAMRDesigner:updateLabels(nCurrentFrame, nFrameCount)
+function CAMRDesigner:updateLabels(indexTable, valueTable)
+    --self.currentFrame = nCurrentFrame
+    --self.frameCount = nFrameCount
+    for index in pairs(indexTable) do
+       self[indexTable[index]] = valueTable[index]
+    end
+
     self:updateRenderTarget()
 end
 
@@ -195,20 +200,7 @@ function CAMRDesigner:updateRenderTarget()
     dxDrawRectangle(0, 0, self.width, self.height, tocolor(80, 80, 80, 200))
     dxDrawRectangle(0, 0, self.width, 20, tocolor(40, 40, 40))
     dxDrawRectangle(0, self.height - 34, self.width, 34, tocolor(0, 180, 240, 180))
-    dxDrawText("Awesome Movement Recorder (by PewX)", 0, 0, self.width, 20, tocolor(230, 230, 230), 1, "default", "center", "center")
-
-    if not self.showMenu then
-        dxDrawImage(5, 25, 24, 24, self.icon_menu)
-    else
-        local menuList = {"Home", "Save", "Load", "Settings"}
-        local menuHeight = (self.height - 20 - 34)/4
-
-        for i, menu in ipairs(menuList) do
-            dxDrawRectangle(0, 20 + menuHeight*(i-1), 95, menuHeight, self.menuHover == menu and tocolor(50, 50, 50, 220) or tocolor(80, 80, 80, 200))
-            dxDrawImage(5, 20 + menuHeight*(i-1)+menuHeight/2-24/2, 24, 24, self[("icon_%s"):format(menu:lower())])
-            dxDrawText(menu, 34, 20 + menuHeight*(i-1), 0, 20 + menuHeight*(i-1)+menuHeight, tocolor(180, 180, 180), 1, "default", "left", "center")
-        end
-    end
+    dxDrawText("PewX Movement Recorder", 0, 0, self.width, 20, tocolor(230, 230, 230), 1, "default", "center", "center")
 
     dxDrawImage(5, self.height - 29, 24, 24, self.circle_arrow_previous)
     dxDrawImage(34, self.height - 29, 24, 24, self.currentStatePlaybackImage)
@@ -221,13 +213,17 @@ function CAMRDesigner:updateRenderTarget()
 
     self.tabHome = true
     --Menus
-    if not self.showMenu then
+    --if not self.showMenu then
+    if true then
         if self.activeMenu == "Home" then
-            dxDrawText("Press 'R' to start recording", 5, 60)
-            dxDrawText("State: -", 5, 75)
-            dxDrawText("FPS: 55", 5, 90)
-            dxDrawText("Recorded frames: " .. (self.frameCount or "-"), 5, 105)
-            dxDrawText("Current frame: " .. (self.currentFrame or "-"), 0, self.height - 34 - 15, self.width, 0, tocolor(255, 255, 255), 1, "default", "center")
+            dxDrawText("Press 'R' to start recording", 5, 50)
+            dxDrawText("State", 5, 75)                                          dxDrawText(self.state or "-", 120, 75)
+            dxDrawText("FPS", 5, 90)                                            dxDrawText(FPS or "-", 120, 90)
+            dxDrawText("Recorded frames", 5, 105)                               dxDrawText(self.frameCount or "-", 120, 105)
+            dxDrawText("Record duration", 5, 120)                               dxDrawText(self.recordDuration and msToTimeString(self.recordDuration) or "-", 120, 120)
+
+            --dxDrawText("Current frame: " .. (self.currentFrame or "-"), 0, self.height - 34 - 15, self.width, 0, tocolor(255, 255, 255), 1, "default", "center")
+            dxDrawText(self.elapsedTime and msToTimeString(self.elapsedTime) or "-", 0, self.height - 34 - 15, self.width, 0, tocolor(255, 255, 255), 1, "default", "center")
 
             --Some controls
             --toggle lines
@@ -242,6 +238,20 @@ function CAMRDesigner:updateRenderTarget()
 
         elseif self.activeMenu == "Settings" then
             --Quality: 0 - 100 % (Desc: 50% = jeder zweite Frame, 25% = jeder 4. frame; 100% = jeder frame)
+        end
+    end
+
+    --Draw at last - so the menu is on first layer
+    if not self.showMenu then
+        dxDrawImage(5, 25, 24, 24, self.icon_menu)
+    else
+        local menuList = {"Home", "Save", "Load", "Settings"}
+        local menuHeight = (self.height - 20 - 34)/4
+
+        for i, menu in ipairs(menuList) do
+            dxDrawRectangle(0, 20 + menuHeight*(i-1), 95, menuHeight, self.menuHover == menu and tocolor(50, 50, 50, 250) or tocolor(80, 80, 80, 250))
+            dxDrawImage(5, 20 + menuHeight*(i-1)+menuHeight/2-24/2, 24, 24, self[("icon_%s"):format(menu:lower())])
+            dxDrawText(menu, 34, 20 + menuHeight*(i-1), 0, 20 + menuHeight*(i-1)+menuHeight, tocolor(180, 180, 180), 1, "default", "left", "center")
         end
     end
 

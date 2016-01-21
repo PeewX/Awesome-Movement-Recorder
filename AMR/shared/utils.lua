@@ -16,6 +16,29 @@ if CLIENT then
         end
         return false
     end
+
+    --FPS
+    local st, counter = getTickCount(), 0
+    FPS = 0
+    addEventHandler("onClientRender", root,
+        function()
+            counter = counter + 1
+            if getTickCount() - st >= 1000 then
+                if FPS ~= counter then
+                    FPS = counter
+                    Core:getManager("CAMRManager").gui:updateRenderTarget()
+                end
+
+                counter = 0
+                st = getTickCount()
+            end
+        end
+    )
+
+    function msToTimeString(ms)
+        if not ms then return '' end
+        return string.format("%01d:%02d:%03d", ms/1000/60, math.fmod(ms/1000, 60), math.fmod(ms, 1000))
+    end
 end
 
 function debugOutput(sText, nType, cr, cg, cb)
