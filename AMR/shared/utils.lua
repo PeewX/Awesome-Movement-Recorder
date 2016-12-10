@@ -41,8 +41,24 @@ if CLIENT then
     end
 end
 
+function toboolean(x)
+    if x == "true" or x == 1 or x == "1" or x == true then
+        return true
+    elseif x == "false" or x == 0 or x == "0" or x == false then
+        return false
+    end
+    return false
+end
+
 function debugOutput(sText, nType, cr, cg, cb)
     if iDEBUG then
-        outputDebugString(("[%s] %s"):format(SERVER and "Server" or "Client", sText), nType or 3, cr, cg, cb)
+        outputDebugString(("[%s] %s"):format(SERVER and "Server" or "Client", tostring(sText)), nType or 3, cr, cg, cb)
     end
+end
+
+function math.round(number, decimals, method)
+    decimals = decimals or 0
+    local factor = 10 ^ decimals
+    if (method == "ceil" or method == "floor") then return math[method](number * factor) / factor
+    else return tonumber(("%."..decimals.."f"):format(number)) end
 end

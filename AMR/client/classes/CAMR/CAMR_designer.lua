@@ -6,7 +6,8 @@
 --
 CAMRDesigner = {}
 
-function CAMRDesigner:constructor()
+function CAMRDesigner:constructor(tSettings)
+    self.settings = tSettings
     self.renderFunc = bind(CAMRDesigner.onRender, self)
     self.clientRestoreEvent = bind(CAMRDesigner.onClientRestore, self)
     self.clientClickEvent = bind(CAMRDesigner.onClientClick, self)
@@ -31,6 +32,9 @@ function CAMRDesigner:constructor()
     self:windowDefinitions()
     self:loadImages()
 
+    self.subElements = {}
+    self:createGUIElements()
+
     self.currentFrame = 0
     self.frameCount = 1
 
@@ -44,6 +48,28 @@ end
 
 function CAMRDesigner:destructor()
 
+end
+
+function CAMRDesigner:createGUIElements()
+    self.playbackSpeedScrollbar = new(CDXScrollbar, self.width - 30, 30, self.height - 34 - 45, false, self)
+    self.playbackSpeedScrollbar:setDefaultValue(0.25, true)
+    self.playbackSpeedScrollbar:setDisplayValues(0, 400)
+
+    self.lineCheckbox = new(CDXCheckbox, "Show lines", 0, 0, self.settings.showLines, self)                                     --Position will set while updating render target
+    self.crosshairCheckbox = new(CDXCheckbox, "Hide crosshair while GUI is open", 0, 0, self.settings.hideCrosshair, self)      --Position will set while updating render target
+    self.vehicleInfoCheckbox = new(CDXCheckbox, "Vehicle informations", 0, 0, self.settings.showVehicleInfos, self)             --Position will set while updating render target
+    self.velocityLineCheckbox = new(CDXCheckbox, "Vehicle speed line", 0, 0, self.settings.showVelocityLine, self)              --Position will set while updating render target
+
+    self.lineCheckbox:setCallbackFunction(function(bState) Core:getManager("CAMRManager"):toggleLine(bState) end)
+    self.crosshairCheckbox:setCallbackFunction(function(bState) Core:getManager("CAMRManager"):toggleCrosshair(bState) end)
+    self.vehicleInfoCheckbox:setCallbackFunction(function(bState) Core:getManager("CAMRManager"):toggleVehicleInfo(bState) end)
+    self.velocityLineCheckbox:setCallbackFunction(function(bState) Core:getManager("CAMRManager"):toggleVelocityLine(bState) end)
+end
+
+function CAMRDesigner:resetSubElements()
+    for _, subElement in pairs(self.subElements) do
+        subElement.active = false
+    end
 end
 
 function CAMRDesigner:onClientClick(sButton, sState)
@@ -95,11 +121,6 @@ function CAMRDesigner:onClientClick(sButton, sState)
         Core:getManager("CAMRManager").AMR:nextFrame()
         return
     end
-
-    --Toggle lines button
-    if isHover(self.startX + self.width - 100- 5, self.startY + 25, 100, 25) then
-        Core:getManager("CAMRManager").AMR:toggleLine()
-    end
 end
 
 function CAMRDesigner:onCursorMove()
@@ -127,23 +148,25 @@ end
 function CAMRDesigner:show()
     self.rendered = true
     addEventHandler("onClientRender", root, self.renderFunc)
-    --addEventHandler("onClientRestore", root, self.clientRestoreEvent)
     addEventHandler("onClientClick", root, self.clientClickEvent)
     addEventHandler("onClientCursorMove", root, self.cursorMoveEvent)
-    --exports.editor_main:setMaxSelectDistance(0)
-    exports.editor_main:setWorldClickEnabled(false)
-    exports.editor_main:enableMouseOver(false)
+
+    exports.editor_main:setMaxSelectDistance(0)         --To disable world clicks
+    exports.editor_main:setWorldClickEnabled(false)     --disables world clicks too
+
+
+    --exports.editor_main:enableMouseOver(false)
 end
 
 function CAMRDesigner:hide()
     self.rendered = false
     removeEventHandler("onClientRender", root, self.renderFunc)
-    --removeEventHandler("onClientRestore", root, self.clientRestoreEvent)
     removeEventHandler("onClientClick", root, self.clientClickEvent)
     removeEventHandler("onClientCursorMove", root, self.cursorMoveEvent)
-    --exports.editor_main:setMaxSelectDistance(155)
+
+    exports.editor_main:setMaxSelectDistance(155) --155 is the default selection distance
     exports.editor_main:setWorldClickEnabled(true)
-    exports.editor_main:enableMouseOver(true)
+    --exports.editor_main:enableMouseOver(true)
 end
 
 function CAMRDesigner:onClientRestore(bRenderTargetsCleared)
@@ -182,10 +205,7 @@ function CAMRDesigner:updatePlaybackImage(bPlaybackState)
     return self:updateRenderTarget()
 end
 
---function CAMRDesigner:updateLabels(nCurrentFrame, nFrameCount)
 function CAMRDesigner:updateLabels(indexTable, valueTable)
-    --self.currentFrame = nCurrentFrame
-    --self.frameCount = nFrameCount
     for index in pairs(indexTable) do
        self[indexTable[index]] = valueTable[index]
     end
@@ -206,45 +226,68 @@ function CAMRDesigner:updateRenderTarget()
     dxDrawImage(34, self.height - 29, 24, 24, self.currentStatePlaybackImage)
     dxDrawImage(63, self.height - 29, 24, 24, self.circle_arrow_forward)
 
+    --Menus
+    --Home
+    --self.playbackSpeedScrollbar.active = false
+
+    --Settings
+    self:resetSubElements()
+
+    if self.activeMenu == "Home" then
+        dxDrawText("Press 'R' to start recording", 5, 50)
+        dxDrawText("State", 5, 75)                                          dxDrawText(self.state or "-", 120, 75)
+        dxDrawText("FPS", 5, 90)                                            dxDrawText(FPS or "-", 120, 90)
+        dxDrawText("Recorded frames", 5, 105)                               dxDrawText(self.frameCount or "-", 120, 105)
+        dxDrawText("Record duration", 5, 120)                               dxDrawText(self.recordDuration and msToTimeString(self.recordDuration) or "-", 120, 120)
+
+        --dxDrawText("Current frame: " .. (self.currentFrame or "-"), 0, self.height - 34 - 15, self.width, 0, tocolor(255, 255, 255), 1, "default", "center")
+        dxDrawText(self.elapsedTime and msToTimeString(self.elapsedTime) or "-", 100, self.height - 15, self.width - 10, 0, tocolor(255, 255, 255), 1, "default", "center")
+
+        --playback speed
+        dxDrawText("Duration multiplicator", self.width - 20, 20, self.width, self.height - 34, tocolor(255, 255, 255), 1, "default", "center", "center", false, false, false, false, false, 90)
+        self.playbackSpeedScrollbar.active = true
+        self.playbackSpeedScrollbar:render()
+    elseif self.activeMenu == "Save" then
+
+    elseif self.activeMenu == "Load" then
+
+    elseif self.activeMenu == "Settings" then
+        local checkboxHeight = self.crosshairCheckbox:getProperty("h") + 5
+        local startY = self.height - 34 - checkboxHeight
+
+        self.crosshairCheckbox:setProperty({"x", "y"}, {5, startY})
+
+        startY = startY - checkboxHeight
+        self.lineCheckbox:setProperty({"x", "y"}, {5, startY})
+
+        startY = startY - checkboxHeight
+        self.velocityLineCheckbox:setProperty({"x", "y"}, {5, startY})
+
+        startY = startY - checkboxHeight
+        self.vehicleInfoCheckbox:setProperty({"x", "y"}, {5, startY})
+
+        --Set active and render dat shit
+        self.lineCheckbox.active = true
+        self.crosshairCheckbox.active = true
+        self.velocityLineCheckbox.active = true
+        self.vehicleInfoCheckbox.active = true
+
+        self.lineCheckbox:render()
+        self.crosshairCheckbox:render()
+        self.velocityLineCheckbox:render()
+        self.vehicleInfoCheckbox:render()
+    end
+
     local length = self.width - 10 - 100
     dxDrawLine(100, self.height - 29/2 - 2, self.width - 10, self.height - 29/2 - 2, tocolor(100, 215, 255), 2)
     dxDrawImage(100 + length/self.frameCount*self.currentFrame - 9, self.height - 1 - 29/2-18/2, 18, 18, self.circle_filled, 0, 0, 0, tocolor(0, 180, 240))
     dxDrawImage(100 + length/self.frameCount*self.currentFrame - 9, self.height - 1 - 29/2-18/2, 18, 18, self.circle_unfilled, 0, 0, 0, tocolor(100, 215, 255))
 
-    self.tabHome = true
-    --Menus
-    --if not self.showMenu then
-    if true then
-        if self.activeMenu == "Home" then
-            dxDrawText("Press 'R' to start recording", 5, 50)
-            dxDrawText("State", 5, 75)                                          dxDrawText(self.state or "-", 120, 75)
-            dxDrawText("FPS", 5, 90)                                            dxDrawText(FPS or "-", 120, 90)
-            dxDrawText("Recorded frames", 5, 105)                               dxDrawText(self.frameCount or "-", 120, 105)
-            dxDrawText("Record duration", 5, 120)                               dxDrawText(self.recordDuration and msToTimeString(self.recordDuration) or "-", 120, 120)
-
-            --dxDrawText("Current frame: " .. (self.currentFrame or "-"), 0, self.height - 34 - 15, self.width, 0, tocolor(255, 255, 255), 1, "default", "center")
-            dxDrawText(self.elapsedTime and msToTimeString(self.elapsedTime) or "-", 0, self.height - 34 - 15, self.width, 0, tocolor(255, 255, 255), 1, "default", "center")
-
-            --Some controls
-            --toggle lines
-            dxDrawRectangle(self.width - 100 - 5, 25, 100, 25, tocolor(0, 180, 255, 200))
-            dxDrawText("Toggle line", self.width - 100 - 5, 25, self.width - 5, 50, tocolor(255, 255, 255), 1, "default", "center", "center")
-
-            --playback speed
-            --dxDrawLine(self.width - 20, 65, self.width - 20, 150, tocolor(100, 215, 255), 2)
-        elseif self.activeMenu == "Save" then
-
-        elseif self.activeMenu == "Load" then
-
-        elseif self.activeMenu == "Settings" then
-            --Quality: 0 - 100 % (Desc: 50% = jeder zweite Frame, 25% = jeder 4. frame; 100% = jeder frame)
-        end
-    end
-
     --Draw at last - so the menu is on first layer
     if not self.showMenu then
         dxDrawImage(5, 25, 24, 24, self.icon_menu)
     else
+        self:resetSubElements()
         local menuList = {"Home", "Save", "Load", "Settings"}
         local menuHeight = (self.height - 20 - 34)/4
 
@@ -274,4 +317,8 @@ function CAMRDesigner:onRender()
     end
 
     dxDrawImage(self.startX, self.startY, self.width, self.height, self.renderTarget)
+end
+
+function CAMRDesigner:getPosition()
+    return self.startX, self.startY
 end

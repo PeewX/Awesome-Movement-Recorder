@@ -6,11 +6,16 @@
         <key_next>num_6</key_next>
     </keybinds>
 
-
     <color_ground r = "255" g = "0" b = "0" a = "255" />
     <color_air r = "0" g = "110" b = "255" a = "255" />
 
-    <rec_quality>100</rec_quality>
-    <showLinesWhileRecord>true</showLinesWhileRecord>
+    <settings>
+        <showLines>true</showLines>                 <!--Show lines | Default: true-->
+        <hideCrosshair>true</hideCrosshair>         <!--Hide crosshair while GUI is open | Default: true-->
+        <showVehicleInfos>false</showVehicleInfos>  <!--Show informations above playback vehicle | Default: false-->
+        <showVelocityLine>false</showVelocityLine>  <!--Show vehicle speed line | Default: false-->
+    </settings>
+
+
     <!--Todo: Ideas: Save/Show vehicle health (visuell: vehicle color) | Show vehicle model name | Show vehicle speed | -->
 </config>

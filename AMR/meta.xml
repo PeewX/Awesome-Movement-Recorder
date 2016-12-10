@@ -1,5 +1,5 @@
 <meta>
-    <info name = "Awesome Movement Recorder" description = "Awesome movement recorder tool to create awesome race maps for awesome players :P" author = "PewX" version = "1.2"/>
+    <info name = "PewX Movement Recorder" description = "Awesome movement recorder tool to create awesome race maps for awesome players :P" author = "PewX" version = "1.3"/>
     <min_mta_version client="1.5.0" server="1.5.0" />
     <oop>true</oop>
 
@@ -18,6 +18,9 @@
         <!--classes-->
         <script src = "client/classes/dxGUI/CDX__Manager.lua" type = "client" />
         <script src = "client/classes/dxGUI/CDXEdit.lua" type = "client" />
+        <script src = "client/classes/dxGUI/CDXScrollbar.lua" type = "client" />
+        <script src = "client/classes/dxGUI/CDXCheckbox.lua" type = "client" />
+        <script src = "client/classes/dxGUI/CDXSwitch.lua" type = "client" />
 
         <script src = "client/classes/CAMR/CAMR.lua" type = "client" />
         <script src = "client/classes/CAMR/CAMR_designer.lua" type = "client" />
@@ -29,7 +32,8 @@
         <script src = "client/system/CCore.lua" type = "client" />
 
     <!--Files-->
-    <file src = "res/config/config.xml" validate = "false"/>
+    <file src = "res/config/config.xml" />
+    <file src = "res/font/NewRepublic.ttf" />
     <file src = "res/img/icon_menu.png" />
     <file src = "res/img/icon_home.png" />
     <file src = "res/img/icon_save.png" />

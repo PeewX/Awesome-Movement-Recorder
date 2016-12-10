@@ -46,6 +46,7 @@ function CDXManager:onClick(btn, st)
 end
 
 function CDXManager:addClickFunction(fCallFunc)
+    if not self.clickExecute then self.clickExecute = {} end
     table.insert(self.clickExecute, bind(fCallFunc, self))
     if not self.onClickFunc then self.onClickFunc = bind(self.onClick, self) end
 end
@@ -64,8 +65,23 @@ function CDXManager:getProperty(sKey)
     return self[sKey]
 end
 
-function CDXManager:setProperty(sKey, nValue)
-    self[sKey] = nValue
+function CDXManager:setProperty(key, value)
+    local keyType, valueType = type(key), type(value)
+    if keyType == "table" or valueType == "table" then
+        assert(keyType == "table", "Invalid argument @setProperty: First argument is not a table")
+        assert(valueType == "table", "Invalid argument @setProperty: Seccond argument is not a table")
+
+        for index in pairs(key) do
+           self[key[index]] = value[index]
+        end
+        return
+    end
+
+    self[key] = value
+end
+
+function CDXManager:setCallbackFunction(aFunction)
+    self.callbackFunction = aFunction
 end
 
 function CDXManager:addClickHandler()

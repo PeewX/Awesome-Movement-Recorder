@@ -11,7 +11,7 @@ function CAMRManager:constructor()
 
     --instantiate classes
     self.AMR = new(CAMR)
-    self.gui = new(CAMRDesigner)
+    self.gui = new(CAMRDesigner, self.settings)
 
     self:initBinds()
 
@@ -21,23 +21,6 @@ end
 
 function CAMRManager:destructor()
 
-end
-
-function CAMRManager:loadSettings()
-    local xml = XML.load("res/config/config.xml")
-    if not xml then return end
-
-    self.keybinds = {}
-    local keybinds = xml:findChild("keybinds", 0)
-    for _, node in pairs(keybinds:getChildren()) do
-        self.keybinds[node:getName()] = node:getValue()
-    end
-
-    self.color_ground = xml:findChild("color_ground", 0):getAttributes()
-    self.color_air = xml:findChild("color_air", 0):getAttributes()
-
-    xml:unload()
-    self.bLoadedSettings = true
 end
 
 function CAMRManager:initBinds()
@@ -64,8 +47,65 @@ function CAMRManager:initBinds()
     bindKey(self.keybinds.key_togglePlayback, "down", self.togglePlaybackFunc)
 end
 
---[[function CAMRManager:toggleWindow()
-    if getKeyState("lctrl") then
-        self.gui:toggle()
+---
+-- Settings
+---
+
+function CAMRManager:loadSettings()
+    local xml = XML.load("res/config/config.xml")
+    if not xml then return end
+
+    self.keybinds = {}
+    local keybinds = xml:findChild("keybinds", 0)
+    for _, node in pairs(keybinds:getChildren()) do
+        self.keybinds[node:getName()] = node:getValue()
     end
-end]]
+
+    self.settings = {}
+    local settings = xml:findChild("settings", 0)
+    for _, node in pairs(settings:getChildren()) do
+        self.settings[node:getName()] = toboolean(node:getValue())
+    end
+
+    self.color_ground = xml:findChild("color_ground", 0):getAttributes()
+    self.color_air = xml:findChild("color_air", 0):getAttributes()
+
+    xml:unload()
+    self.bLoadedSettings = true
+end
+
+function CAMRManager:saveSettings()
+    --Todo: MACH HINNE!!
+end
+
+function CAMRManager:getSettings(settingIndex)
+    --assert(self.setting[settingIndex], "Invalid argument @ getSetting: Index not exist")
+    outputChatBox("Return: " .. tostring(self.setting[settingIndex]))
+    return self.setting[settingIndex]
+end
+
+---
+-- Callback functions
+---
+
+function CAMRManager:toggleLine(primaryState)
+    self.settings["showLines"] = primaryState
+
+    if primaryState then
+        self.AMR:showLine()
+    else
+        self.AMR:hideLine()
+    end
+end
+
+function CAMRManager:toggleCrosshair(primaryState)
+
+end
+
+function CAMRManager:toggleVehicleInfo(primaryState)
+
+end
+
+function CAMRManager:toggleVelocityLine(primaryLine)
+
+end

@@ -19,12 +19,15 @@ function CAMR:constructor()
     self.recording = false
     self.renderPlayback = false
     self.playRecordFrame = 1
+    self.playbackSpeed = 1
 
     self.renderRecordEvent = bind(CAMR.record, self)
     self.renderLineEvent = bind(CAMR.renderLine, self)
     self.renderPlaybackEvent = bind(CAMR.renderPlayback, self)
 
-    self.renderLine = addEventHandler("onClientRender", root, self.renderLineEvent)
+
+    self.renderLine = true
+    addEventHandler("onClientRender", root, self.renderLineEvent)
 end
 
 function CAMR:destructor()
@@ -120,15 +123,28 @@ function CAMR:updateFrame()
 
     setVehicleColor(self.eVehicleDummy, unpack(frame.color))
 
-    --Core:getManager("CAMRManager").gui:updateLabels(self.playRecordFrame, self.record.frames)
-    --Core:getManager("CAMRManager").gui:updateLabels({"currentFrame", "frameCount"}, {self.playRecordFrame, #self.record.vehicle})
     Core:getManager("CAMRManager").gui:updateLabels({"currentFrame", "elapsedTime"}, {self.playRecordFrame, frame.elapsedTime})
 end
 
 function CAMR:renderPlayback()
     if not self.eVehicleDummy then return end
 
-    local playbackProgress = (getTickCount() - self.playbackStart) / ((self.playbackStart + self.playbackDuration) - self.playbackStart)
+    local rawPlaybackSpeed = Core:getManager("CAMRManager").gui.playbackSpeedScrollbar:getValue()
+    local interpolatedPlaybackSpeed = interpolateBetween(0, 0, 0, 4, 0, 0, rawPlaybackSpeed, "Linear")
+
+    if self.playbackSpeed ~= interpolatedPlaybackSpeed then
+        self.playbackSpeed = interpolatedPlaybackSpeed
+
+        local frame = self.record.vehicle[self.playRecordFrame]
+        if not frame then return end
+
+        self.playbackStart = getTickCount()
+        self.playbackStartFrame = self.playRecordFrame
+        self.playbackDuration = (self.record.duration - frame.elapsedTime)*interpolatedPlaybackSpeed
+        if self.playbackDuration == 0 then self:stopPlayback() return end
+    end
+
+    local playbackProgress = (getTickCount() - self.playbackStart) / self.playbackDuration
     self.playRecordFrame = math.floor(interpolateBetween(self.playbackStartFrame, 0, 0, #self.record.vehicle, 0, 0, playbackProgress, "Linear"))
 
     self:updateFrame()
@@ -164,6 +180,7 @@ function CAMR:showLine()
     if not self.renderLine then
         self.renderLine = true
         addEventHandler("onClientRender", root, self.renderLineEvent)
+        outputChatBox("add line event handler")
     end
 end
 
@@ -171,6 +188,7 @@ function CAMR:hideLine()
     if self.renderLine then
         self.renderLine = false
         removeEventHandler("onClientRender", root, self.renderLineEvent)
+        outputChatBox("remove evend handler")
     end
 end
 
@@ -220,6 +238,7 @@ function CAMR:startPlayback()
         self.playRecordFrame = 1
     end
 
+    self.playbackSpeed = 1
     self.playbackStart = getTickCount()
     self.playbackStartFrame = self.playRecordFrame or 1
 
